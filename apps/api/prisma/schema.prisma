@@ -1,0 +1,158 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMIN
+  RECEPCIONISTA
+  DOCTOR
+  PACIENTE
+}
+
+enum EstadoCita {
+  PENDIENTE
+  CONFIRMADA
+  COMPLETADA
+  CANCELADA
+  REASIGNADA
+}
+
+enum OrigenCita {
+  WEB
+  APP
+  RECEPCIONISTA
+  KIOSCO
+  SMS
+}
+
+model Usuario {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  nombre       String
+  rol          Rol       @default(PACIENTE)
+  activo       Boolean   @default(true)
+  mfaSecreto   String?
+  mfaActivo    Boolean   @default(false)
+  ultimoAcceso DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  paciente      Paciente?
+  doctor        Doctor?
+  auditLogs     AuditLog[]
+}
+
+model Sucursal {
+  id        String   @id @default(cuid())
+  nombre    String
+  direccion String
+  telefono  String?
+  horario   Json?
+  latitud   Float?
+  longitud  Float?
+  activa    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sucursalEspecialidades SucursalEspecialidad[]
+  doctores               Doctor[]
+  citas                  Cita[]
+}
+
+model Especialidad {
+  id          String   @id @default(cuid())
+  nombre      String   @unique
+  descripcion String?
+  cupoMaximo  Int      @default(20)
+  activa      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sucursalEspecialidades SucursalEspecialidad[]
+  doctores               Doctor[]
+  citas                  Cita[]
+}
+
+model SucursalEspecialidad {
+  sucursalId     String
+  especialidadId String
+  cupoMaximo     Int?
+
+  sucursal     Sucursal     @relation(fields: [sucursalId], references: [id])
+  especialidad Especialidad @relation(fields: [especialidadId], references: [id])
+
+  @@id([sucursalId, especialidadId])
+}
+
+model Doctor {
+  id              String   @id @default(cuid())
+  usuarioId       String   @unique
+  especialidadId  String
+  sucursalId      String
+  horario         Json?
+  activo          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  usuario      Usuario      @relation(fields: [usuarioId], references: [id])
+  especialidad Especialidad @relation(fields: [especialidadId], references: [id])
+  sucursal     Sucursal     @relation(fields: [sucursalId], references: [id])
+  citas        Cita[]
+}
+
+model Paciente {
+  id              String   @id @default(cuid())
+  usuarioId       String   @unique
+  cedula          String   @unique
+  telefono        String?
+  fechaNacimiento DateTime?
+  alergias        String?
+  condiciones     String?
+  preferencias    Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  usuario Usuario @relation(fields: [usuarioId], references: [id])
+  citas   Cita[]
+}
+
+model Cita {
+  id             String      @id @default(cuid())
+  pacienteId     String
+  doctorId       String
+  sucursalId     String
+  especialidadId String
+  fechaHora      DateTime
+  estado         EstadoCita  @default(PENDIENTE)
+  origen         OrigenCita  @default(WEB)
+  notas          String?
+  checkinAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  paciente     Paciente     @relation(fields: [pacienteId], references: [id])
+  doctor       Doctor       @relation(fields: [doctorId], references: [id])
+  sucursal     Sucursal     @relation(fields: [sucursalId], references: [id])
+  especialidad Especialidad @relation(fields: [especialidadId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  accion     String
+  entidad    String
+  entidadId  String?
+  usuarioId  String?
+  datosViejos Json?
+  datosNuevos Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  usuario Usuario? @relation(fields: [usuarioId], references: [id])
+}

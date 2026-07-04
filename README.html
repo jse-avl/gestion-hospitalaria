@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Sistema de Gestión de Citas Médicas</title>
+<style>
+  @page { margin: 2cm; size: A4; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-size: 11pt; line-height: 1.6; color: #1a1a1a; max-width: 800px; margin: 0 auto; padding: 1.5cm; }
+  h1 { font-size: 20pt; color: #1a3a5c; margin: 1cm 0 0.3cm; border-bottom: 2px solid #1a3a5c; padding-bottom: 4px; }
+  h1:first-of-type { margin-top: 0; }
+  h2 { font-size: 13pt; color: #2a4a6c; margin: 0.6cm 0 0.3cm; }
+  p { margin: 0.3cm 0; }
+  ul { margin: 0.3cm 0 0.3cm 1.5cm; }
+  li { margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 0.4cm 0; font-size: 10pt; }
+  th, td { border: 1px solid #bbb; padding: 5px 8px; text-align: left; }
+  th { background: #1a3a5c; color: #fff; font-weight: 600; }
+  tr:nth-child(even) { background: #f4f6f8; }
+  pre { background: #f4f6f8; border: 1px solid #ddd; border-left: 3px solid #1a3a5c; padding: 10px 12px; margin: 0.4cm 0; font-family: 'Consolas', monospace; font-size: 9.5pt; white-space: pre-wrap; }
+  code { background: #f0f2f4; padding: 1px 4px; border-radius: 2px; font-family: 'Consolas', monospace; font-size: 9.5pt; }
+  pre code { background: none; padding: 0; }
+  .header { text-align: center; padding: 1cm 0 0.5cm; }
+  .header h1 { border: none; font-size: 22pt; margin: 0; }
+  .header p { color: #4a6a8a; font-size: 12pt; }
+  @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Sistema de Gestión de Citas Médicas</h1>
+  <p>Sector Público — República de Panamá</p>
+</div>
+
+<h1>Inicio Rápido</h1>
+<pre>docker compose up -d</pre>
+
+<table>
+  <tr><th>Servicio</th><th>URL</th></tr>
+  <tr><td>Portal Pacientes</td><td>http://localhost:3000</td></tr>
+  <tr><td>Panel Admin</td><td>http://localhost:3001</td></tr>
+  <tr><td>API</td><td>http://localhost:3002/api</td></tr>
+</table>
+
+<h2>Credenciales por Defecto</h2>
+<table>
+  <tr><th>Rol</th><th>Email</th><th>Password</th></tr>
+  <tr><td>Admin</td><td>admin@sistema.gob.pa</td><td>123456</td></tr>
+  <tr><td>Recepción</td><td>recepcion@correo.pa</td><td>123456</td></tr>
+</table>
+
+<h1>Stack</h1>
+<ul>
+  <li>Backend: NestJS 11 + Prisma ORM + PostgreSQL 16 + Redis 7</li>
+  <li>Frontend: Next.js 14 (App Router) + TailwindCSS + shadcn/ui</li>
+  <li>Auth: JWT (access 15min + refresh 7d con rotación) + MFA TOTP</li>
+  <li>Infra: Docker Compose</li>
+</ul>
+
+<h1>Desarrollo Local</h1>
+<pre>docker compose up -d postgres redis
+pnpm install
+pnpm --filter api exec prisma migrate dev
+pnpm --filter api exec ts-node prisma/seed.ts
+pnpm run dev</pre>
+
+<h1>Estructura</h1>
+<pre>apps/api      Backend NestJS (puerto 3002)
+apps/web      Portal pacientes (puerto 3000)
+apps/admin    Panel administración (puerto 3001)
+packages/     Librerías compartidas (config, tipos, UI)</pre>
+
+<p style="margin-top: 1cm; color: #666; font-size: 10pt;">Documentación técnica detallada en <code>docs/technical.html</code>.</p>
+
+</body>
+</html>

@@ -1,0 +1,13 @@
+node_modules
+.turbo
+.next
+dist
+.git
+*.log
+.DS_Store
+.dockerignore
+docker-compose.yml
+*.md
+.env
+.env.local
+.turbo

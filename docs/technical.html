@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Documentación Técnica — Sistema de Gestión de Citas Médicas</title>
+<style>
+  @page { margin: 2.5cm 2cm; size: A4; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; font-size: 10.5pt; line-height: 1.6; color: #1a1a1a; max-width: 900px; margin: 0 auto; padding: 2cm 1.5cm; }
+
+  /* Portada */
+  .cover { text-align: center; padding: 6cm 0 4cm; page-break-after: always; }
+  .cover h1 { font-size: 22pt; color: #1a3a5c; margin-bottom: 0.6cm; letter-spacing: 0.5px; }
+  .cover .subtitle { font-size: 13pt; color: #4a6a8a; margin-bottom: 2cm; }
+  .cover .meta { font-size: 10pt; color: #666; }
+  .cover .meta p { margin: 4px 0; }
+
+  h1 { font-size: 16pt; color: #1a3a5c; margin: 1.2cm 0 0.4cm; border-bottom: 2px solid #1a3a5c; padding-bottom: 4px; page-break-before: always; }
+  h1:first-of-type { page-break-before: avoid; }
+  h2 { font-size: 13pt; color: #2a4a6c; margin: 0.8cm 0 0.3cm; }
+  h3 { font-size: 11pt; color: #3a5a7c; margin: 0.5cm 0 0.2cm; }
+
+  p { margin: 0.3cm 0; text-align: justify; }
+  ul, ol { margin: 0.3cm 0 0.3cm 1.5cm; }
+  li { margin: 3px 0; }
+
+  table { width: 100%; border-collapse: collapse; margin: 0.5cm 0; font-size: 9.5pt; }
+  th, td { border: 1px solid #bbb; padding: 6px 8px; text-align: left; }
+  th { background: #1a3a5c; color: #fff; font-weight: 600; }
+  tr:nth-child(even) { background: #f4f6f8; }
+
+  pre, code { font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 9pt; }
+  pre { background: #f4f6f8; border: 1px solid #ddd; border-left: 3px solid #1a3a5c; padding: 10px 12px; margin: 0.4cm 0; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+  code { background: #f0f2f4; padding: 1px 4px; border-radius: 2px; }
+  pre code { background: none; padding: 0; }
+
+  .alert { background: #fff8e1; border-left: 4px solid #f0a030; padding: 10px 12px; margin: 0.4cm 0; font-size: 10pt; }
+
+  @media print {
+    body { padding: 0; }
+    .cover { padding: 4cm 0 3cm; }
+    h1 { page-break-before: always; }
+    h1:first-of-type { page-break-before: avoid; }
+    h2 { page-break-after: avoid; }
+    pre, table { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>Sistema de Gestión de Citas Médicas</h1>
+  <p class="subtitle">Documentación Técnica — Versión 1.0</p>
+  <div class="meta">
+    <p>Sector Público — República de Panamá</p>
+    <p>Julio 2026</p>
+  </div>
+</div>
+
+<h1>1. Descripción General</h1>
+<p>Aplicación web full-stack para la gestión de citas médicas en el sector público panameño. Permite el registro de pacientes, asignación de citas con doctores en sucursales, y administración del sistema con control de acceso basado en roles (RBAC).</p>
+
+<h1>2. Stack Tecnológico</h1>
+<table>
+  <tr><th>Capa</th><th>Tecnología</th><th>Versión</th></tr>
+  <tr><td>Runtime</td><td>Node.js</td><td>20 LTS</td></tr>
+  <tr><td>Package Manager</td><td>pnpm</td><td>9.x</td></tr>
+  <tr><td>Monorepo</td><td>Turborepo</td><td>2.x</td></tr>
+  <tr><td>Base de datos</td><td>PostgreSQL</td><td>16</td></tr>
+  <tr><td>Cache / Sesión</td><td>Redis</td><td>7</td></tr>
+  <tr><td>ORM</td><td>Prisma</td><td>5.x</td></tr>
+  <tr><td>API Backend</td><td>NestJS</td><td>11.x</td></tr>
+  <tr><td>Frontend Pacientes</td><td>Next.js 14 (App Router)</td><td>14.2</td></tr>
+  <tr><td>Frontend Admin</td><td>Next.js 14 (App Router)</td><td>14.2</td></tr>
+  <tr><td>UI</td><td>shadcn/ui + TailwindCSS</td><td>—</td></tr>
+  <tr><td>Autenticación</td><td>JWT + MFA TOTP</td><td>—</td></tr>
+  <tr><td>Compilador NestJS</td><td>SWC</td><td>1.15</td></tr>
+</table>
+
+<h1>3. Estructura del Monorepo</h1>
+<pre>
+/
+├── apps/
+│   ├── api/                  # Backend NestJS (puerto 3002, prefijo /api)
+│   │   ├── src/
+│   │   │   ├── auth/         # Registro, login, refresh, MFA TOTP
+│   │   │   ├── common/       # Guards, decoradores, filtros, interceptores
+│   │   │   ├── sucursales/   # CRUD sucursales
+│   │   │   ├── especialidades/ # CRUD especialidades
+│   │   │   ├── doctores/     # CRUD doctores + /disponibles
+│   │   │   ├── pacientes/    # CRUD pacientes
+│   │   │   └── citas/        # CRUD citas + mis-citas, del-dia, cancelar
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma # 8 modelos
+│   │   │   └── seed.ts       # Datos iniciales
+│   │   └── nest-cli.json     # Builder SWC
+│   ├── web/                  # Portal pacientes (puerto 3000)
+│   │   └── src/
+│   │       ├── app/          # 7 rutas
+│   │       └── lib/api.ts    # Cliente HTTP con auto-refresh JWT
+│   └── admin/                # Panel administración (puerto 3001)
+│       └── src/
+│           ├── app/          # 9 rutas
+│           └── lib/api.ts    # Cliente HTTP con auto-refresh JWT
+├── packages/
+│   ├── config/               # tsconfig bases
+│   ├── shared/               # Tipos, DTOs, constantes
+│   └── ui/                   # Componentes shadcn/ui
+├── docker-compose.yml        # PostgreSQL + Redis + API + Web + Admin
+├── Dockerfile                # Build multi-app
+└── docker-entrypoint.sh      # Entrypoint con migración + seed + inicio
+</pre>
+
+<h1>4. Modelo de Datos</h1>
+<p>8 tablas definidas en <code>apps/api/prisma/schema.prisma</code>:</p>
+<table>
+  <tr><th>Tabla</th><th>Descripción</th><th>Campos principales</th></tr>
+  <tr><td>Usuario</td><td>Login unificado (admin, recepcionista, doctor, paciente)</td><td>email, password_hash, rol, mfa_secret, mfa_verified</td></tr>
+  <tr><td>Sucursal</td><td>Centro de salud</td><td>nombre, direccion, telefono, activo</td></tr>
+  <tr><td>Especialidad</td><td>Tipo de consulta médica</td><td>nombre, descripcion, activo</td></tr>
+  <tr><td>Doctor</td><td>Médico asociado a sucursal + especialidad</td><td>nombre, cedula, horario (JSON), activo</td></tr>
+  <tr><td>Paciente</td><td>Persona que solicita cita</td><td>nombre, cedula, telefono, direccion, fecha_nacimiento</td></tr>
+  <tr><td>Cita</td><td>Reserva de turno médico</td><td>fecha, estado (pendiente/confirmada/cancelada/completada), doctorId, pacienteId</td></tr>
+  <tr><td>AuditLog</td><td>Traza de cambios en el sistema</td><td>usuario, accion, entidad, entidadId, detalle (JSON)</td></tr>
+</table>
+
+<h1>5. Autenticación y Seguridad</h1>
+<ul>
+  <li><strong>JWT access token:</strong> 15 minutos de validez, firmado con <code>JWT_SECRET</code></li>
+  <li><strong>JWT refresh token:</strong> 7 días de validez, firmado con <code>JWT_REFRESH_SECRET</code>, con rotación (se invalida al usarse)</li>
+  <li><strong>bcrypt:</strong> costo 12 para hash de contraseñas</li>
+  <li><strong>MFA TOTP:</strong> opcional, via speakeasy + generación de QR code</li>
+  <li><strong>Rate limiting:</strong> 100 requests por minuto (ThrottlerModule + Redis)</li>
+  <li><strong>RBAC:</strong> roles admin, recepcionista, doctor, paciente — controlado por RolesGuard</li>
+  <li><strong>Auditoría:</strong> AuditInterceptor registra todas las operaciones de escritura</li>
+</ul>
+
+<h1>6. API Endpoints</h1>
+
+<h2>6.1 Auth</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td>POST</td><td>/api/auth/register</td><td>Registro de paciente</td></tr>
+  <tr><td>POST</td><td>/api/auth/login</td><td>Login con email+password, devuelve tokens</td></tr>
+  <tr><td>POST</td><td>/api/auth/refresh</td><td>Renovar access token (refresh en body)</td></tr>
+  <tr><td>POST</td><td>/api/auth/mfa/generate</td><td>Generar secreto TOTP (requiere JWT)</td></tr>
+  <tr><td>POST</td><td>/api/auth/mfa/verify</td><td>Verificar y activar MFA</td></tr>
+</table>
+
+<h2>6.2 Sucursales</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th><th>Roles</th></tr>
+  <tr><td>GET</td><td>/api/sucursales</td><td>Listar todas</td><td>admin, recepcionista</td></tr>
+  <tr><td>GET</td><td>/api/sucursales/:id</td><td>Obtener por ID</td><td>admin, recepcionista</td></tr>
+  <tr><td>POST</td><td>/api/sucursales</td><td>Crear</td><td>admin</td></tr>
+  <tr><td>PATCH</td><td>/api/sucursales/:id</td><td>Actualizar</td><td>admin</td></tr>
+  <tr><td>DELETE</td><td>/api/sucursales/:id</td><td>Eliminar</td><td>admin</td></tr>
+</table>
+
+<h2>6.3 Especialidades</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th><th>Roles</th></tr>
+  <tr><td>GET</td><td>/api/especialidades</td><td>Listar todas</td><td>público</td></tr>
+  <tr><td>GET</td><td>/api/especialidades/:id</td><td>Obtener por ID</td><td>público</td></tr>
+  <tr><td>POST</td><td>/api/especialidades</td><td>Crear</td><td>admin</td></tr>
+  <tr><td>PATCH</td><td>/api/especialidades/:id</td><td>Actualizar</td><td>admin</td></tr>
+  <tr><td>DELETE</td><td>/api/especialidades/:id</td><td>Eliminar</td><td>admin</td></tr>
+</table>
+
+<h2>6.4 Doctores</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td>GET</td><td>/api/doctores</td><td>Listar (filtro por sucursal/especialidad via query)</td></tr>
+  <tr><td>GET</td><td>/api/doctores/disponibles</td><td>Doctores disponibles en fecha (query: sucursalId, especialidadId, fecha)</td></tr>
+  <tr><td>GET</td><td>/api/doctores/:id</td><td>Obtener por ID</td></tr>
+  <tr><td>POST</td><td>/api/doctores</td><td>Crear (admin)</td></tr>
+  <tr><td>PATCH</td><td>/api/doctores/:id</td><td>Actualizar (admin)</td></tr>
+  <tr><td>DELETE</td><td>/api/doctores/:id</td><td>Eliminar (admin)</td></tr>
+</table>
+
+<h2>6.5 Pacientes</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td>GET</td><td>/api/pacientes</td><td>Listar (admin, recepcionista)</td></tr>
+  <tr><td>GET</td><td>/api/pacientes/:id</td><td>Obtener por ID</td></tr>
+  <tr><td>PATCH</td><td>/api/pacientes/:id</td><td>Actualizar (admin, recepcionista)</td></tr>
+  <tr><td>POST</td><td>/api/pacientes/buscar-cedula</td><td>Buscar por cédula</td></tr>
+</table>
+
+<h2>6.6 Citas</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td>GET</td><td>/api/citas</td><td>Listar (admin, recepcionista)</td></tr>
+  <tr><td>GET</td><td>/api/citas/mis-citas</td><td>Citas del paciente autenticado</td></tr>
+  <tr><td>GET</td><td>/api/citas/del-dia</td><td>Citas de hoy (admin, recepcionista)</td></tr>
+  <tr><td>POST</td><td>/api/citas</td><td>Crear cita (paciente)</td></tr>
+  <tr><td>PATCH</td><td>/api/citas/:id/cancelar</td><td>Cancelar cita</td></tr>
+  <tr><td>PATCH</td><td>/api/citas/:id/checkin</td><td>Marcar check-in (recepcionista)</td></tr>
+  <tr><td>PATCH</td><td>/api/citas/:id/completar</td><td>Marcar completada (doctor)</td></tr>
+</table>
+
+<h2>6.7 Auditoría</h2>
+<table>
+  <tr><th>Método</th><th>Ruta</th><th>Descripción</th></tr>
+  <tr><td>GET</td><td>/api/audit-logs</td><td>Listar logs con paginación y filtro por acción (admin)</td></tr>
+</table>
+
+<h1>7. Frontend — Portal Pacientes (apps/web)</h1>
+<table>
+  <tr><th>Ruta</th><th>Descripción</th><th>Requiere Auth</th></tr>
+  <tr><td>/</td><td>Landing page informativa</td><td>No</td></tr>
+  <tr><td>/login</td><td>Inicio de sesión con soporte MFA</td><td>No</td></tr>
+  <tr><td>/register</td><td>Registro de nuevo paciente</td><td>No</td></tr>
+  <tr><td>/dashboard</td><td>Resumen del paciente (próximas citas)</td><td>Sí</td></tr>
+  <tr><td>/mis-citas</td><td>Historial de citas del paciente</td><td>Sí</td></tr>
+  <tr><td>/agendar</td><td>Wizard 4 pasos: sucursal → especialidad → doctor → confirmar</td><td>Sí</td></tr>
+  <tr><td>/perfil</td><td>Editar datos personales, configurar MFA</td><td>Sí</td></tr>
+</table>
+
+<h1>8. Frontend — Panel Admin (apps/admin)</h1>
+<table>
+  <tr><th>Ruta</th><th>Descripción</th><th>Roles</th></tr>
+  <tr><td>/login</td><td>Inicio de sesión</td><td>—</td></tr>
+  <tr><td>/dashboard</td><td>Resumen con conteos y citas de hoy</td><td>admin, recepcionista</td></tr>
+  <tr><td>/citas</td><td>Gestión de citas</td><td>admin, recepcionista</td></tr>
+  <tr><td>/sucursales</td><td>Gestión de sucursales</td><td>admin</td></tr>
+  <tr><td>/especialidades</td><td>Gestión de especialidades</td><td>admin</td></tr>
+  <tr><td>/doctores</td><td>Gestión de doctores</td><td>admin</td></tr>
+  <tr><td>/pacientes</td><td>Gestión de pacientes</td><td>admin, recepcionista</td></tr>
+  <tr><td>/audit-logs</td><td>Visualización de traza de auditoría</td><td>admin</td></tr>
+</table>
+
+<h1>9. Despliegue con Docker</h1>
+
+<h2>9.1 Requisitos</h2>
+<ul>
+  <li>Docker + Docker Compose</li>
+  <li>Node.js 20 LTS + pnpm 9.x (para desarrollo local)</li>
+</ul>
+
+<h2>9.2 Producción</h2>
+<pre>docker compose up -d</pre>
+<p>El entrypoint ejecuta automáticamente migraciones de Prisma y datos iniciales (seed).</p>
+
+<h2>9.3 Desarrollo Local</h2>
+<pre>docker compose up -d postgres redis
+pnpm install
+pnpm --filter api exec prisma migrate dev
+pnpm --filter api exec ts-node prisma/seed.ts
+pnpm run dev</pre>
+
+<h2>9.4 Servicios</h2>
+<table>
+  <tr><th>Servicio</th><th>Puerto</th><th>URL</th></tr>
+  <tr><td>Portal Pacientes</td><td>3000</td><td>http://localhost:3000</td></tr>
+  <tr><td>Panel Admin</td><td>3001</td><td>http://localhost:3001</td></tr>
+  <tr><td>API</td><td>3002</td><td>http://localhost:3002/api</td></tr>
+  <tr><td>PostgreSQL</td><td>5432</td><td>localhost:5432</td></tr>
+  <tr><td>Redis</td><td>6379</td><td>localhost:6379</td></tr>
+</table>
+
+<h1>10. Credenciales por Defecto</h1>
+<table>
+  <tr><th>Rol</th><th>Email</th><th>Password</th></tr>
+  <tr><td>Admin</td><td>admin@sistema.gob.pa</td><td>123456</td></tr>
+  <tr><td>Recepcionista</td><td>recepcion@correo.pa</td><td>123456</td></tr>
+  <tr><td>Doctor</td><td>(según seed)</td><td>123456</td></tr>
+</table>
+
+<h1>11. Notas Técnicas</h1>
+<ul>
+  <li><strong>SWC Builder:</strong> NestJS usa @swc/core para compilar, evitando errores de validación de decoradores de TypeScript 4.9+. El type-checking se hace por separado en IDE/CI.</li>
+  <li><strong>JWT Refresh Rotation:</strong> Cada vez que se usa un refresh token, se genera uno nuevo y el anterior se invalida. Previene reuso de tokens robados.</li>
+  <li><strong>Prisma Migrations:</strong> En Docker se ejecutan automáticamente en el entrypoint del servicio api via prisma migrate deploy.</li>
+  <li><strong>CORS:</strong> La API permite todos los orígenes en desarrollo (app.enableCors()).</li>
+  <li><strong>Monorepo:</strong> Turborepo gestiona el orden de build (shared → ui → api, web, admin).</li>
+</ul>
+
+</body>
+</html>
